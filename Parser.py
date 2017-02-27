@@ -11,20 +11,17 @@ three = '3 Cover; cook on High heat setting 2 to 3 hours or on Low heat setting 
 four = '4 Remove chicken from slow cooker, and transfer to cutting board; let stand 5 minutes or until cool enough to handle. Meanwhile, stir cream cheese and Cheddar cheese into slow cooker. Cover; cook on High heat setting 5 to 10 minutes or until cheese melts. Stir.'
 five = '5 Meanwhile, shred chicken with 2 forks; return to slow cooker, and stir in cooked spaghetti. Top with parsley.'
 
-steps = [one, two]
+steps = [one, two, three, four, five]
 
 regex = re.compile('[%s]' % re.escape(string.punctuation))
 stemmer = nltk.stem.PorterStemmer()
+tester = addDocPostings.invertedIndex()
 
 for step in steps:
 
     step = regex.sub('', step)
 
     stemmed = [stemmer.stem(word).lower() for word in step.split(' ')]
-
-    print(stemmed)
-
-    tester = addDocPostings.invertedIndex()
 
     tester.indexDocument(stemmed)
 

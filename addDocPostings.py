@@ -22,17 +22,19 @@ class invertedIndex(object):
 
         #sort term dict before merge
 
-        print(newTermDict)
+        #print(newTermDict)
 
         self.mergeTermDictionaries(newTermDict)
 
+        print("master:")
         print(sorted(self.termDict.items()))
 
-        print(newDocPosting)
+        #print(newDocPosting)
         self.addDocPosting(newDocPosting, self.numDocs+1)
 
         print("------------------------")
         print(sorted(self.termPosting.items()))
+
         self.numDocs += 1
 
     def mergeTermDictionaries(self, termDictionaryToMerge):
