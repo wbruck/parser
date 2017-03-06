@@ -1,4 +1,5 @@
 class invertedIndex(object):
+    """A Single-pass im-memory index"""
     termDict = {}
     termPosting = {}
     numDocs = 0
@@ -9,6 +10,7 @@ class invertedIndex(object):
         self.numDocs = 0
 
     def indexDocument(self, stemmedWordList):
+        """Index terms in new document, add it to the existing in memory InvertedIndex"""
         newTermDict = {}
         newDocPosting = {}
 
@@ -48,7 +50,6 @@ class invertedIndex(object):
 
             #sort term Dict here
 
-
     def addDocPosting(self, docPosting, docNum):
         """Append (docNum, termPos) to the termPostings dict"""
         for k in docPosting:
@@ -58,6 +59,19 @@ class invertedIndex(object):
             except:
                 self.termPosting[k] = [postTuple]
 
+    def queryIndex(self,query):
+        """query Index based on list of stemmed words"""
+        queryDocs = {}
+        for word in query:
+            print(word, self.termPosting[word])
+            for docPos in self.termPosting[word]:
+                print(docPos[0], docPos[1])
+                positions = docPos[1]
+                try:
+                    [queryDocs[docPos[0]].append(position) for position in positions]
+                except:
+                    queryDocs[docPos[0]] = positions
+        print(queryDocs)
 
 if __name__ == "__main__":
     one = ['1', 'spray', '5quart', 'slow', 'cooker', 'with', 'cook', 'spray']

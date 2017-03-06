@@ -26,3 +26,4 @@ for step in steps:
     tester.indexDocument(stemmed)
 
 
+tester.queryIndex(['add', 'bowl', 'chicken'])
