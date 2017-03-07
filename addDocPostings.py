@@ -22,9 +22,10 @@ class invertedIndex(object):
                 newTermDict[term] = 1
                 newDocPosting[term] = [index]
 
-        #sort term dict before merge
 
-        #print(newTermDict)
+#        #sort term dict before merge
+#        #does sorting the dict really make a difference???
+#        #print(newTermDict)
 
         self.mergeTermDictionaries(newTermDict)
 
@@ -32,6 +33,7 @@ class invertedIndex(object):
         print(sorted(self.termDict.items()))
 
         #print(newDocPosting)
+#       Postings lists are already sorted becuase they are created sequentially
         self.addDocPosting(newDocPosting, self.numDocs+1)
 
         print("------------------------")
@@ -58,6 +60,35 @@ class invertedIndex(object):
                 self.termPosting[k].append(postTuple)
             except:
                 self.termPosting[k] = [postTuple]
+
+    def betterQueryIndex(self, query):
+        """query Index based on list of stemmed words"""
+
+        i = 0
+
+        while i+1 < len(query):
+            postingList1 = self.termPosting[query[i]]
+            postingList2 = self.termPosting[query[i+1]]
+            print(query[i], postingList1)
+            print(query[i+1], postingList2)
+
+            x = 0
+            y = 0
+            while x + y < len(postingList1) + len(postingList2):
+                if postingList1[x][0] == postingList2[y][0]:
+                    nearByQueryTerms = self.mergePostingPositions(postingList1[x][1],
+                                                                  postingList2[y][1],
+                                                                  4)
+                    x += 1
+                    y += 1
+                elif postingList1[x][0] > postingList2[y][0]:
+                    y += 1
+                elif postingList1[x][0] < postingList2[y][0]:
+                    x += 1
+
+            print(nearByQueryTerms)
+            i += 1
+
 
     def queryIndex(self, query):
         """query Index based on list of stemmed words"""
@@ -97,32 +128,37 @@ class invertedIndex(object):
         print (docProximityScores)
         return docProximityScores
 
-    def checkPostingPositions(self, docId1, docId2, wordProximity):
-
-        one = [1, 4, 6, 9, 19, 20]
-        two = [3, 7, 10, 16]
-        if len(docId1) < len(docId2):
-            tempList = docId1
-            docId1 = docId2
-            docId2 = tempList
+    def mergePostingPositions(self, docId1, docId2, wordProximity):
+        """merge sort postings lists, only return if items are within wordProximity of each other"""
 
         i = 0
+        j = 0
 
-        list = []
-        for post1 in docId1:
-            for post2 in docId2[i:]:
-                if post1 > post2:
-                    list.append(post2)
-                    i += 1
+        result = []
+        positionOverlaps = []
 
-                elif post1 < post2:
-                    list.append(post1)
+        while len(result) != len(docId1) + len(docId2):
+            if i == len(docId1):
+                result += docId2[j:]
 
-                    break
+            elif j == len(docId2):
+                result += docId1[i:]
 
-        list += docId2[i:]
+            elif docId1[i] >= docId2[j]:
+                if docId1[i] - docId2[j] <= wordProximity:
+                    positionOverlaps.append(docId2[j])
+                result.append(docId2[j])
+                j += 1
 
-        print(list)
+            elif docId1[i] < docId2[j]:
+                if docId2[j] - docId1[i] <= wordProximity:
+                    positionOverlaps.append(docId1[i])
+                result.append(docId1[i])
+                i += 1
+
+        print(result)
+        print(positionOverlaps)
+        return positionOverlaps
 
     def getTextPositionOfDoc(self, docId, queryDocs, termDistance):
         """get the main text segmets of the document that may contain the answer"""
@@ -148,6 +184,8 @@ if __name__ == "__main__":
 
     #tester.indexDocument(one)
 
-    one = [1, 4, 6, 9, 19, 20]
-    two = [3, 7, 10, 15]
-    tester.checkPostingPositions(one, two, 3)
+    one = [1, 6, 12, 19, 20, 989]
+    two = [7, 14, 15, 20, 987]
+    print(one)
+    print(two)
+    tester.mergePostingPositions(one, two, 2)

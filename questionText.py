@@ -33,11 +33,12 @@ for step in steps:
 
     tester.indexDocument(stemmed)
 
+print('running query')
+docQuery = tester.betterQueryIndex(['european', 'settlement'])
 
-docQuery = tester.queryIndex(['kangaroo', 'european', 'settlement'])
+print ("now we are printing the generated query document")
+print(docQuery )
 
-print(docQuery)
+#tester.retrieveBestDocs(docQuery, 8)
 
-tester.retrieveBestDocs(docQuery, 8)
-
-tester.getTextPositionOfDoc(1, docQuery, 8)
+#tester.getTextPositionOfDoc(1, docQuery, 8)
