@@ -26,9 +26,12 @@ def mergeDocPostingList(docId1, docId2, wordProximity):
             result.append(docId1[i])
             i += 1
 
+    print('result')
     print(result)
-    print(positionOverlaps)
-    return positionOverlaps
+    print('positionOverlap: ')
+    print( positionOverlaps)
+
+    return result
 
 
 def retrieveBestDocs(queryDocs, wordProximity):
