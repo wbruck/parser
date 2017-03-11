@@ -2,7 +2,7 @@ import nltk
 import string
 import re
 
-import addDocPostings
+import InvertedIndex
 
 
 def stemText(textToStem):

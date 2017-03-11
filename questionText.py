@@ -1,16 +1,8 @@
-import nltk
-import string
-import re
 from path import path
 from Parser import stemText
+from Query import Query
 
-import addDocPostings
-
-def readFile(fileName):
-    with open(fileName) as f:
-        s = f.read()
-    print s
-    return s
+import InvertedIndex
 
 fulldoc = path('C:\Users/admin/Documents/575/parser/Question_Answer_Dataset_v1.2/Question_Answer_Dataset_v1.2/S08/data/set1/a1.txt.clean').bytes()
 docArray = [para for para in fulldoc.split('\n') if para.strip() != '']
@@ -27,23 +19,32 @@ five = docArray[15]
 
 steps = [one, two, three, four, five]
 
-tester = addDocPostings.invertedIndex()
+tester = InvertedIndex.InvertedIndex()
 
-for step in steps:
+for step in docArray:
 
     stemmed = stemText(step)
 
     tester.indexDocument(stemmed)
 
 print('running query')
-query = "red kangaroo largest"
-docQuery = tester.betterQueryIndex(stemText(query))
+queryObj = Query(tester)
+queryText = "red kangaroo speed"
+docQuery = queryObj.betterQueryIndex(stemText(queryText))
 
 
 print ("now we are printing the generated query document")
 print(docQuery)
 
+print(queryObj.documentScores(docQuery))
 
-#tester.retrieveBestDocs(docQuery, 8)
+for doc in docQuery:
+    docId = doc[0]
+    for position in doc[1]:
 
-#tester.getTextPositionOfDoc(1, docQuery, 8)
+        print(docId)
+        if position - 4 > 0:
+            positionA = position - 4
+        else:
+            positionA = 0
+        print(docArray[docId-1].split(' ')[positionA:position+4])

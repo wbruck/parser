@@ -16,6 +16,8 @@ def mergeDocPostingList(docId1, docId2, wordProximity):
 
         elif docId1[i] >= docId2[j]:
             if docId1[i] - docId2[j] <= wordProximity:
+                #adding doc1 as test
+                positionOverlaps.append(docId1[i])
                 positionOverlaps.append(docId2[j])
             result.append(docId2[j])
             j += 1
@@ -23,6 +25,7 @@ def mergeDocPostingList(docId1, docId2, wordProximity):
         elif docId1[i] < docId2[j]:
             if docId2[j] - docId1[i] <= wordProximity:
                 positionOverlaps.append(docId1[i])
+                positionOverlaps.append(docId2[j])
             result.append(docId1[i])
             i += 1
 
@@ -31,7 +34,7 @@ def mergeDocPostingList(docId1, docId2, wordProximity):
     print('positionOverlap: ')
     print( positionOverlaps)
 
-    return result
+    return positionOverlaps
 
 
 def retrieveBestDocs(queryDocs, wordProximity):
