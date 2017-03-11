@@ -29,7 +29,7 @@ for step in docArray:
 
 print('running query')
 queryObj = Query(tester)
-queryText = "red kangaroo speed"
+queryText = "red kangaroo"
 docQuery = queryObj.betterQueryIndex(stemText(queryText))
 
 

@@ -25,7 +25,7 @@ class Query(object):
                                                              self.invertedIndex.termPosting[query[i+1]])
 
 
-        i += 1
+            i += 1
         print("These are the docs")
         print(documentsSoFar)
         return documentsSoFar
@@ -77,4 +77,39 @@ class Query(object):
         return candidateDocs
 
 
+    def recursiveMergePostingWithQuery(self, postingList1, query):
+        """query Index based on list of stemmed words"""
 
+        candidateDocs = []
+        postingList2 = self.invertedIndex.termPosting[query[1]]
+
+        x = 0
+        y = 0
+        while x + y < len(postingList1) + len(postingList2):
+            if x >= len(postingList1) or y >= len(postingList2):
+                break
+
+            if postingList1[x][0] == postingList2[y][0]:
+                print("DocID: " + str(postingList1[x][0]))
+                nearByQueryTerms = mergeDocPostingList(postingList1[x][1],
+                                                       postingList2[y][1],
+                                                       4)
+                newPosting = (postingList1[x][0], nearByQueryTerms)
+                ### recursivly merge postings for the next query term here with newPosting
+                #for posting in list1:
+                #   call twoTermPosting([posting],Query)
+                #nearByQueryTerms = self.twoTermQueryByPostings(newPosting, otherPosting)
+                print('near by:')
+                print(nearByQueryTerms)
+                candidateDocs.append((postingList1[x][0], nearByQueryTerms))
+
+                x += 1
+                y += 1
+
+            elif postingList1[x][0] > postingList2[y][0]:
+                y += 1
+            elif postingList1[x][0] < postingList2[y][0]:
+                x += 1
+
+        #print(candidateDocs)
+        return candidateDocs

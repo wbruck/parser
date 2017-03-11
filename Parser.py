@@ -10,9 +10,8 @@ def stemText(textToStem):
     regex = re.compile('[%s]' % re.escape(string.punctuation))
     stemmer = nltk.stem.PorterStemmer()
 
-
     cleanText = regex.sub('', textToStem)
 
-    stemmed = [stemmer.stem(word).lower() for word in cleanText.split(' ')]
+    stemmed = [stemmer.stem(word).lower() for word in cleanText.split(' ') if word.strip() != '']
 
     return stemmed

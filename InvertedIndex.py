@@ -1,4 +1,4 @@
-from mergeScorePostingsList import mergeDocPostingList
+import pandas as pd
 
 class InvertedIndex(object):
     """A Single-pass im-memory index"""
@@ -64,20 +64,31 @@ class InvertedIndex(object):
                 self.termPosting[k] = [postTuple]
 
 
+    def createTermDocMatrix(self):
+        """create a term document matrix from the inverted index"""
+        docsList = []
+
+        i = 0
+        while i <= self.numDocs:
+            docsList.append({})
+            i += 1
+
+        for term, postingList in self.termPosting.items():
+            print(term)
+            for posting in postingList:
+                #print(posting)
+                # EXAMPLE posting: (16, [53])
+                docsList[posting[0]][term] = len(posting[1])
+
+        matrix = pd.DataFrame(docsList)
+        matrix = matrix.fillna(0)
+
+        return matrix
+
 
 
 
 
 
 if __name__ == "__main__":
-    #one = ['1', 'spray', '5quart', 'slow', 'cooker', 'with', 'cook', 'spray']
-
-    tester = InvertedIndex()
-
-    #tester.indexDocument(one)
-
-    one = [1, 6, 12, 19, 20, 989]
-    two = [7, 14, 15, 20, 987]
-    print(one)
-    print(two)
-    tester.mergePostingPositions(one, two, 2)
+    print("main")
