@@ -74,7 +74,7 @@ class InvertedIndex(object):
             i += 1
 
         for term, postingList in self.termPosting.items():
-            print(term)
+            #print(term)
             for posting in postingList:
                 #print(posting)
                 # EXAMPLE posting: (16, [53])

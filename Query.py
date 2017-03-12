@@ -1,5 +1,7 @@
 from mergeScorePostingsList import mergeDocPostingList
 import InvertedIndex
+from cosineSim import cosineSim
+
 
 class Query(object):
     invertedIndex = None
@@ -113,3 +115,36 @@ class Query(object):
 
         #print(candidateDocs)
         return candidateDocs
+
+    def getKNearestDocs(self, query, docTermMatrix, k):
+        """Return the K most similar documents to the query"""
+        queryDict = {}
+
+        for term in query:
+            queryDict[str(term)] = 1
+
+        newMatrix = docTermMatrix.append(queryDict, ignore_index=True).fillna(0)
+
+        qVec = newMatrix.iloc[-1]
+
+        #print(newMatrix.shape)
+
+        i = 1
+        documentSimilarities = {}
+        while i < newMatrix.shape[0] - 1:
+            documentSimilarities[i] = cosineSim(qVec, newMatrix.iloc[i])
+            i += 1
+
+        print(documentSimilarities)
+        rankedDocSim = sorted(documentSimilarities.items(), key=lambda x: x[1], reverse=True)
+
+        nearestKDocs = []
+        j=0
+        while j <= k:
+            print(rankedDocSim[j])
+            if rankedDocSim[j][1] ==0:
+                break
+            nearestKDocs.append(rankedDocSim[j][0])
+            j += 1
+
+        return nearestKDocs
