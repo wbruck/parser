@@ -3,13 +3,18 @@ import InvertedIndex
 from cosineSim import cosineSim
 from itertools import combinations
 from path import path
+from Parser import stemText
 
 
 class Query(object):
     invertedIndex = None
+    query = ''
 
     def __init__(self, invertedIndex):
         self.invertedIndex = invertedIndex
+
+    def setQuery(self, query):
+        self.query = query
 
     def betterQueryIndex(self, query):
         """query Index based on list of stemmed words"""
@@ -78,8 +83,10 @@ class Query(object):
         return candidateDocs
 
 
-    def mergeEachPostingPair(self,query, termProximity):
+    def mergeEachPostingPair(self, query, termProximity):
         """create all unique pairs of query terms, merge positing lists for each pair"""
+
+        self.setQuery(query)
 
         termPairMergedPostings = []
         for terms in combinations(query, 2):
@@ -114,7 +121,8 @@ class Query(object):
             documentText = [word.lower().replace('\n', '') for word in rawDocumentText.split(' ') if word.strip() != '']
 
             i = 0
-
+            blurbInvertedIndex = InvertedIndex.InvertedIndex()
+            blurbList = []
             while i < len(doc[1]) - 1:
                 positionA = doc[1][i]
                 positionB = doc[1][i+1]
@@ -124,12 +132,26 @@ class Query(object):
                     positionA = positionA - distanceFromTerm
                 else:
                     positionA = 0
-                print(' '.join((documentText[positionA:(positionB + distanceFromTerm)])))
+
+                termsInDoc = ' '.join(documentText[positionA:(positionB + distanceFromTerm)])
+
+                blurbList.append(termsInDoc)
+
+                blurbInvertedIndex.indexDocument(stemText(termsInDoc), 'someName')
+
+                #print(' '.join((documentText[positionA:(positionB + distanceFromTerm)])))
 
                 i += 2
 
             totalSections += sectionsFound
+
         print("Sections Retrieved: " + str(totalSections))
+
+        blurbMatrix = blurbInvertedIndex.createTermDocMatrix()
+        bestBlurbs = self.getKNearestDocs(self.query, blurbMatrix, 5)
+
+        for blurb in bestBlurbs:
+            print(blurbList[blurb-1])
 
     def consolidateDocProximityList(self, docTermProximityList, x):
         """consolidate the list of documents X term pair proximity"""
@@ -170,12 +192,6 @@ class Query(object):
 
         return docTermConsolidatedPositions
 
-
-
-
-
-
-
     def getKNearestDocs(self, query, docTermMatrix, k):
         """Return the K most similar documents to the query"""
 
@@ -200,10 +216,14 @@ class Query(object):
         rankedDocSim = sorted(documentSimilarities.items(), key=lambda x: x[1], reverse=True)
 
         nearestKDocs = []
+
+        if len(rankedDocSim)-1 <= k:
+            k = len(rankedDocSim)-1
+
         j=0
         while j <= k:
             print(rankedDocSim[j])
-            if rankedDocSim[j][1] ==0:
+            if rankedDocSim[j][1] == 0:
                 break
             nearestKDocs.append(rankedDocSim[j][0])
             j += 1
