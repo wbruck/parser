@@ -2,6 +2,7 @@ from mergeScorePostingsList import mergeDocPostingList
 import InvertedIndex
 from cosineSim import cosineSim
 from itertools import combinations
+from path import path
 
 
 class Query(object):
@@ -62,7 +63,8 @@ class Query(object):
 
                 # print('near by:')
                 # print(nearByQueryTerms)
-                candidateDocs.append((postingList1[x][0], nearByQueryTerms))
+                if len(nearByQueryTerms) != 0:
+                    candidateDocs.append((postingList1[x][0], nearByQueryTerms))
 
                 x += 1
                 y += 1
@@ -82,41 +84,93 @@ class Query(object):
         termPairMergedPostings = []
         for terms in combinations(query, 2):
 
-            print(terms)
+            #print(terms)
             postingsMerged = self.twoTermPostingsMerge(self.invertedIndex.termPosting[terms[0]],
                                                        self.invertedIndex.termPosting[terms[1]],
                                                        termProximity)
 
-            print(postingsMerged)
+            #print(postingsMerged)
             termPairMergedPostings.append(postingsMerged)
 
         return termPairMergedPostings
 
-    def showDocumentText(self, documentsByTermProximity, documentArray, distanceFromTerm):
-        """Show text that may answer the query from the relevent documents"""
-        for termPairProximity in documentsByTermProximity:
-            for doc in termPairProximity:
-                print(doc)
-                docId = doc[0]
+    def showDocumentText(self, documentsByTermProximity, distanceFromTerm):
+        """Show text that may answer the query from the relevant documents"""
 
-                i = 0
 
-                while i < len(doc[1]) - 1:
-                    positionA = doc[1][i]
-                    positionB = doc[1][i+1]
-                    print(docId)
-                    if positionA - distanceFromTerm > 0:
-                        positionA = positionA - distanceFromTerm
-                    else:
-                        positionA = 0
-                    print(documentArray[docId - 1].split(' ')[positionA:(positionB + distanceFromTerm)])
+        #for termPairProximity in documentsByTermProximity:
+        totalSections = 0
 
-                    i += 2
+        print("Documents Retrived: " + str(len(documentsByTermProximity)))
 
-    def consolidateDocProximityList(self, firstDocList, docProximityList):
+        for doc in documentsByTermProximity: #termPairProximity:
+            print(doc)
+            docId = doc[0]
+
+            sectionsFound = (len(doc[1])/2)
+
+            documentFile = self.invertedIndex.listOfFiles[docId - 1]
+            rawDocumentText = path(documentFile).text(encoding='utf8')
+            documentText = [word.lower().replace('\n', '') for word in rawDocumentText.split(' ') if word.strip() != '']
+
+            i = 0
+
+            while i < len(doc[1]) - 1:
+                positionA = doc[1][i]
+                positionB = doc[1][i+1]
+                print(docId)
+
+                if positionA - distanceFromTerm > 0:
+                    positionA = positionA - distanceFromTerm
+                else:
+                    positionA = 0
+                print(' '.join((documentText[positionA:(positionB + distanceFromTerm)])))
+
+                i += 2
+
+            totalSections += sectionsFound
+        print("Sections Retrieved: " + str(totalSections))
+
+    def consolidateDocProximityList(self, docTermProximityList, x):
         """consolidate the list of documents X term pair proximity"""
+        combinedDocPostingsDict = {}
 
         # turn all document proximities into a dict, reference by key, join the lists consolidate lists
+        for termProximity in docTermProximityList:
+            for documentProximity in termProximity:
+                try:
+                    combinedDocPostingsDict[documentProximity[0]] += documentProximity[1]
+                except:
+                    combinedDocPostingsDict[documentProximity[0]] = documentProximity[1]
+
+        #print(combinedDocPostingsDict)
+
+        docTermConsolidatedPositions = []
+
+        for document, positions in combinedDocPostingsDict.items():
+
+            sortedPositionsList = sorted(positions)
+            lowestPosition = sortedPositionsList[0]
+            positionPairs = []
+            positionPairs.append(lowestPosition)
+
+            for nextPosition in sortedPositionsList:
+
+                if (nextPosition - lowestPosition) <= x:
+                    lowestPosition = nextPosition
+                    continue
+                else:
+                    positionPairs.append(lowestPosition)
+                    positionPairs.append(nextPosition)
+                    lowestPosition = nextPosition
+
+            positionPairs.append(lowestPosition)
+
+            docTermConsolidatedPositions.append((document, positionPairs))
+
+        return docTermConsolidatedPositions
+
+
 
 
 

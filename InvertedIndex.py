@@ -4,6 +4,7 @@ class InvertedIndex(object):
     """A Single-pass im-memory index"""
     termDict = {}
     termPosting = {}
+    listOfFiles = []
     numDocs = 0
 
     def __init__(self):
@@ -11,8 +12,10 @@ class InvertedIndex(object):
         self.termPosting = {}
         self.numDocs = 0
 
-    def indexDocument(self, stemmedWordList):
+    def indexDocument(self, stemmedWordList, fileName):
         """Index terms in new document, add it to the existing in memory InvertedIndex"""
+        self.listOfFiles.append(fileName)
+
         newTermDict = {}
         newDocPosting = {}
 
