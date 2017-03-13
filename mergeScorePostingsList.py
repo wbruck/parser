@@ -29,10 +29,10 @@ def mergeDocPostingList(docId1, docId2, wordProximity):
             result.append(docId1[i])
             i += 1
 
-    print('result')
-    print(result)
-    print('positionOverlap: ')
-    print( positionOverlaps)
+    # print('result')
+    # print(result)
+    # print('positionOverlap: ')
+    # print( positionOverlaps)
 
     return positionOverlaps
 

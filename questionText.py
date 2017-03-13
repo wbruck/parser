@@ -1,6 +1,7 @@
 from path import path
 from Parser import stemText
 from Query import Query
+import itertools
 
 import InvertedIndex
 
@@ -29,24 +30,33 @@ for step in docArray:
 
 print('running query')
 queryObj = Query(tester)
-queryText = "red kangaroo"
+queryText = "kangaroos wider bite"
 stemmedQuery = stemText(queryText)
 
-docQuery = queryObj.betterQueryIndex(stemmedQuery)
+docsWithTermProximity = queryObj.mergeEachPostingPair(stemmedQuery, 5)
 
+# docQuery = queryObj.betterQueryIndex(stemmedQuery)
+#
+#
+# print ("now we are printing the generated query document")
+# print(docQuery)
+#
+# print(queryObj.documentScores(docQuery))
+#
+print(docsWithTermProximity)
 
-print ("now we are printing the generated query document")
-print(docQuery)
-
-print(queryObj.documentScores(docQuery))
-
-for doc in docQuery:
-    docId = doc[0]
-    for position in doc[1]:
-
-        print(docId)
-        if position - 4 > 0:
-            positionA = position - 4
-        else:
-            positionA = 0
-        print(docArray[docId-1].split(' ')[positionA:position+4])
+queryObj.consolidateDocProximityList(docsWithTermProximity[0],docsWithTermProximity[1:])
+#queryObj.showDocumentText(docsWithTermProximity,docArray, 10)
+# for termPairProximity in docsWithTermProximity:
+#     for doc in termPairProximity:
+#         print(doc)
+#         docId = doc[0]
+#
+#         for position in doc[1]:
+#
+#             print(docId)
+#             if position - 4 > 0:
+#                 positionA = position - 4
+#             else:
+#                 positionA = 0
+#             print(docArray[docId-1].split(' ')[positionA:position+4])

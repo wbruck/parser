@@ -1,6 +1,7 @@
 from mergeScorePostingsList import mergeDocPostingList
 import InvertedIndex
 from cosineSim import cosineSim
+from itertools import combinations
 
 
 class Query(object):
@@ -23,7 +24,7 @@ class Query(object):
                 print("term2" + query[i+1])
                 print(self.invertedIndex.termPosting[query[i+1]])
 
-                documentsSoFar = self.twoTermQueryByPostings(self.invertedIndex.termPosting[query[i]],
+                documentsSoFar = self.twoTermPostingsMerge(self.invertedIndex.termPosting[query[i]],
                                                              self.invertedIndex.termPosting[query[i+1]])
 
 
@@ -42,7 +43,7 @@ class Query(object):
 
         return scoresList
 
-    def twoTermQueryByPostings(self, postingList1, postingList2):
+    def twoTermPostingsMerge(self, postingList1, postingList2, termProximity):
         """query Index based on list of stemmed words"""
 
         candidateDocs = []
@@ -54,17 +55,13 @@ class Query(object):
                 break
 
             if postingList1[x][0] == postingList2[y][0]:
-                print("DocID: " + str(postingList1[x][0]))
+                #print("DocID: " + str(postingList1[x][0]))
                 nearByQueryTerms = mergeDocPostingList(postingList1[x][1],
                                                        postingList2[y][1],
-                                                       4)
-                newPosting = (postingList1[x][0], nearByQueryTerms)
-                ### recursivly merge postings for the next query term here with newPosting
-                #for posting in list1:
-                #   call twoTermPosting([posting],Query)
-                #nearByQueryTerms = self.twoTermQueryByPostings(newPosting, otherPosting)
-                print('near by:')
-                print(nearByQueryTerms)
+                                                       termProximity)
+
+                # print('near by:')
+                # print(nearByQueryTerms)
                 candidateDocs.append((postingList1[x][0], nearByQueryTerms))
 
                 x += 1
@@ -79,45 +76,55 @@ class Query(object):
         return candidateDocs
 
 
-    def recursiveMergePostingWithQuery(self, postingList1, query):
-        """query Index based on list of stemmed words"""
+    def mergeEachPostingPair(self,query, termProximity):
+        """create all unique pairs of query terms, merge positing lists for each pair"""
 
-        candidateDocs = []
-        postingList2 = self.invertedIndex.termPosting[query[1]]
+        termPairMergedPostings = []
+        for terms in combinations(query, 2):
 
-        x = 0
-        y = 0
-        while x + y < len(postingList1) + len(postingList2):
-            if x >= len(postingList1) or y >= len(postingList2):
-                break
+            print(terms)
+            postingsMerged = self.twoTermPostingsMerge(self.invertedIndex.termPosting[terms[0]],
+                                                       self.invertedIndex.termPosting[terms[1]],
+                                                       termProximity)
 
-            if postingList1[x][0] == postingList2[y][0]:
-                print("DocID: " + str(postingList1[x][0]))
-                nearByQueryTerms = mergeDocPostingList(postingList1[x][1],
-                                                       postingList2[y][1],
-                                                       4)
-                newPosting = (postingList1[x][0], nearByQueryTerms)
-                ### recursivly merge postings for the next query term here with newPosting
-                #for posting in list1:
-                #   call twoTermPosting([posting],Query)
-                #nearByQueryTerms = self.twoTermQueryByPostings(newPosting, otherPosting)
-                print('near by:')
-                print(nearByQueryTerms)
-                candidateDocs.append((postingList1[x][0], nearByQueryTerms))
+            print(postingsMerged)
+            termPairMergedPostings.append(postingsMerged)
 
-                x += 1
-                y += 1
+        return termPairMergedPostings
 
-            elif postingList1[x][0] > postingList2[y][0]:
-                y += 1
-            elif postingList1[x][0] < postingList2[y][0]:
-                x += 1
+    def showDocumentText(self, documentsByTermProximity, documentArray, distanceFromTerm):
+        """Show text that may answer the query from the relevent documents"""
+        for termPairProximity in documentsByTermProximity:
+            for doc in termPairProximity:
+                print(doc)
+                docId = doc[0]
 
-        #print(candidateDocs)
-        return candidateDocs
+                i = 0
+
+                while i < len(doc[1]) - 1:
+                    positionA = doc[1][i]
+                    positionB = doc[1][i+1]
+                    print(docId)
+                    if positionA - distanceFromTerm > 0:
+                        positionA = positionA - distanceFromTerm
+                    else:
+                        positionA = 0
+                    print(documentArray[docId - 1].split(' ')[positionA:(positionB + distanceFromTerm)])
+
+                    i += 2
+
+    def consolidateDocProximityList(self, firstDocList, docProximityList):
+        """consolidate the list of documents X term pair proximity"""
+
+        # turn all document proximities into a dict, reference by key, join the lists consolidate lists
+
+
+
+
 
     def getKNearestDocs(self, query, docTermMatrix, k):
         """Return the K most similar documents to the query"""
+
         queryDict = {}
 
         for term in query:
