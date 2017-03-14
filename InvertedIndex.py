@@ -1,4 +1,5 @@
 import pandas as pd
+import pickle
 
 class InvertedIndex(object):
     """A Single-pass im-memory index"""
@@ -11,6 +12,25 @@ class InvertedIndex(object):
         self.termDict = {}
         self.termPosting = {}
         self.numDocs = 0
+        self.listOfFiles = []
+
+    def save(self,fileName):
+        """Pickle the InvertedIndex object to load later"""
+
+        with open(fileName, 'wb') as outputFile:
+            pickle.dump(self, outputFile, pickle.HIGHEST_PROTOCOL)
+
+    def load(self, fileName):
+        """Load a pickled Inverted Index Object for queries or to add more documents"""
+
+        with open(fileName, 'rb') as inputFile:
+            tempIndex = pickle.load(inputFile)
+
+        self.termDict = tempIndex.termDict
+        self.termPosting = tempIndex.termPosting
+        print(tempIndex.listOfFiles[0])
+        self.listOfFiles = tempIndex.listOfFiles
+        self.numDocs = tempIndex.numDocs
 
     def indexDocument(self, stemmedWordList, fileName):
         """Index terms in new document, add it to the existing in memory InvertedIndex"""

@@ -110,8 +110,11 @@ class Query(object):
 
         print("Documents Retrived: " + str(len(documentsByTermProximity)))
 
+        blurbInvertedIndex = InvertedIndex.InvertedIndex()
+        blurbList = []
+
         for doc in documentsByTermProximity: #termPairProximity:
-            print(doc)
+
             docId = doc[0]
 
             sectionsFound = (len(doc[1])/2)
@@ -121,12 +124,10 @@ class Query(object):
             documentText = [word.lower().replace('\n', '') for word in rawDocumentText.split(' ') if word.strip() != '']
 
             i = 0
-            blurbInvertedIndex = InvertedIndex.InvertedIndex()
-            blurbList = []
+
             while i < len(doc[1]) - 1:
                 positionA = doc[1][i]
                 positionB = doc[1][i+1]
-                print(docId)
 
                 if positionA - distanceFromTerm > 0:
                     positionA = positionA - distanceFromTerm
@@ -137,9 +138,7 @@ class Query(object):
 
                 blurbList.append(termsInDoc)
 
-                blurbInvertedIndex.indexDocument(stemText(termsInDoc), 'someName')
-
-                #print(' '.join((documentText[positionA:(positionB + distanceFromTerm)])))
+                blurbInvertedIndex.indexDocument(stemText(termsInDoc), '')
 
                 i += 2
 
@@ -148,10 +147,12 @@ class Query(object):
         print("Sections Retrieved: " + str(totalSections))
 
         blurbMatrix = blurbInvertedIndex.createTermDocMatrix()
-        bestBlurbs = self.getKNearestDocs(self.query, blurbMatrix, 5)
+        bestBlurbs = self.getKNearestDocs(self.query, blurbMatrix, 3)
 
-        for blurb in bestBlurbs:
-            print(blurbList[blurb-1])
+        print("Showing Best 3 Results:")
+        for blurbNum in bestBlurbs:
+            print(blurbNum)
+            print(blurbList[blurbNum-1])
 
     def consolidateDocProximityList(self, docTermProximityList, x):
         """consolidate the list of documents X term pair proximity"""
@@ -212,13 +213,15 @@ class Query(object):
             documentSimilarities[i] = cosineSim(qVec, newMatrix.iloc[i])
             i += 1
 
-        print(documentSimilarities)
+        #print(documentSimilarities)
         rankedDocSim = sorted(documentSimilarities.items(), key=lambda x: x[1], reverse=True)
 
         nearestKDocs = []
 
         if len(rankedDocSim)-1 <= k:
             k = len(rankedDocSim)-1
+        else:
+            k -= 1
 
         j=0
         while j <= k:
