@@ -2,7 +2,7 @@ from mergeScorePostingsList import mergeDocPostingList
 import InvertedIndex
 from cosineSim import cosineSim
 from itertools import combinations
-from path import path
+from path import Path
 from Parser import stemText
 
 
@@ -16,38 +16,16 @@ class Query(object):
     def setQuery(self, query):
         self.query = query
 
-    def betterQueryIndex(self, query):
-        """query Index based on list of stemmed words"""
-        terms = len(query)
-        totalDocuments = []
-        documentsSoFar = []
-        i = 0
+    def runQuery(self, query):
+        stemmedQuery = stemText(query)
 
-        while i <= terms:
-            if i == 0:
-                print ("term1 " + query[i] )
-                print(self.invertedIndex.termPosting[query[i]])
-                print("term2" + query[i+1])
-                print(self.invertedIndex.termPosting[query[i+1]])
+        docsWithTermProximity = self.mergeEachPostingPair(stemmedQuery, 5)
 
-                documentsSoFar = self.twoTermPostingsMerge(self.invertedIndex.termPosting[query[i]],
-                                                             self.invertedIndex.termPosting[query[i+1]])
+        # print(docsWithTermProximity)
 
+        shortList = self.consolidateDocProximityList(docsWithTermProximity, 5)
+        self.showDocumentText(shortList, 10)
 
-            i += 1
-        print("These are the docs")
-        print(documentsSoFar)
-        return documentsSoFar
-
-    def documentScores(self, documentPostings):
-
-        scoresList = []
-
-        for posting in documentPostings:
-            score = len(posting[1])
-            scoresList.append((posting[0],score))
-
-        return scoresList
 
     def twoTermPostingsMerge(self, postingList1, postingList2, termProximity):
         """query Index based on list of stemmed words"""
@@ -102,7 +80,7 @@ class Query(object):
         return termPairMergedPostings
 
     def showDocumentText(self, documentsByTermProximity, distanceFromTerm):
-        """Show text that may answer the query from the relevant documents"""
+        """Show text that may answer the query from the top 3 most relevant documents determined with cosine similarity to query"""
 
 
         #for termPairProximity in documentsByTermProximity:
@@ -120,7 +98,7 @@ class Query(object):
             sectionsFound = (len(doc[1])/2)
 
             documentFile = self.invertedIndex.listOfFiles[docId - 1]
-            rawDocumentText = path(documentFile).text(encoding='utf8')
+            rawDocumentText = Path(documentFile).text(encoding='utf8')
             documentText = [word.lower().replace('\n', '') for word in rawDocumentText.split(' ') if word.strip() != '']
 
             i = 0
